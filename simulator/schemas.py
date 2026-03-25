@@ -1,4 +1,5 @@
 """Pydantic schemas for the stream-society simulator."""
+
 from __future__ import annotations
 
 from typing import Dict, List, Optional

@@ -1,4 +1,5 @@
 """Persona ingestion pipeline for stream-society."""
+
 from __future__ import annotations
 
 import json

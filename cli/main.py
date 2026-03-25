@@ -1,4 +1,5 @@
 """Command-line interface for stream-society."""
+
 from __future__ import annotations
 
 import logging
@@ -31,7 +32,9 @@ def simulate(
     config_path: Path = typer.Argument(..., help="Path to experiment YAML config"),
     seed: Optional[int] = typer.Option(None, "--seed", help="Override seed from config"),
     policy: Optional[str] = typer.Option(None, "--policy", help="Override policy from config"),
-    output_dir: Optional[Path] = typer.Option(None, "--output-dir", help="Override output directory"),
+    output_dir: Optional[Path] = typer.Option(
+        None, "--output-dir", help="Override output directory"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
 ) -> None:
     """Run a single simulation experiment from a YAML config file."""
@@ -82,7 +85,7 @@ def simulate(
     )
 
     sim = Simulation(config=run_config, personas=personas)
-    turn_logs = sim.run()
+    sim.run()
 
     # Save results
     sim.save(out_dir)
@@ -135,7 +138,9 @@ def evaluate(
 @app.command()
 def report(
     run_dirs: List[Path] = typer.Argument(..., help="Run directories to compare"),
-    export_csv: Optional[Path] = typer.Option(None, "--export-csv", help="Export comparison to CSV"),
+    export_csv: Optional[Path] = typer.Option(
+        None, "--export-csv", help="Export comparison to CSV"
+    ),
 ) -> None:
     """Compare metrics across multiple simulation runs."""
     from analytics.report import compare_runs, export_metrics_csv
@@ -164,7 +169,9 @@ def report(
 @app.command(name="ingest-personas")
 def ingest_personas(
     input_path: Path = typer.Argument(..., help="Input JSONL file path"),
-    output_dir: Path = typer.Option(Path("outputs/personas"), "--output-dir", help="Output directory"),
+    output_dir: Path = typer.Option(
+        Path("outputs/personas"), "--output-dir", help="Output directory"
+    ),
 ) -> None:
     """Run persona ingestion pipeline."""
     from ingestion.persona_ingestion import (

@@ -1,4 +1,5 @@
 """Mock LLM adapter with template-based responses."""
+
 from __future__ import annotations
 
 import random

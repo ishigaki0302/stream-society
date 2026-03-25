@@ -1,4 +1,5 @@
 """FastAPI web application for StreamSociety."""
+
 from __future__ import annotations
 
 import json

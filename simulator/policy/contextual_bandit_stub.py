@@ -1,4 +1,5 @@
 """Contextual Bandit (LinUCB-style) comment selection policy stub."""
+
 from __future__ import annotations
 
 import math
@@ -72,10 +73,7 @@ class ContextualBanditPolicy(SelectionPolicy):
         exploit = self._dot(self._theta, features)
 
         # Uncertainty estimate (diagonal approximation)
-        variance = sum(
-            features[i] ** 2 / max(self._A_diag[i], 1e-6)
-            for i in range(_FEATURE_DIM)
-        )
+        variance = sum(features[i] ** 2 / max(self._A_diag[i], 1e-6) for i in range(_FEATURE_DIM))
         explore = self.alpha * math.sqrt(variance)
 
         return exploit + explore
@@ -89,10 +87,7 @@ class ContextualBanditPolicy(SelectionPolicy):
         if not candidates:
             return None
 
-        scored = [
-            (self._ucb_score(_extract_features(c)), c)
-            for c in candidates
-        ]
+        scored = [(self._ucb_score(_extract_features(c)), c) for c in candidates]
         scored.sort(key=lambda x: x[0], reverse=True)
         return scored[0][1]
 
