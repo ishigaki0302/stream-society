@@ -143,3 +143,26 @@ def test_all_communication_styles():
                 break
         # Should have produced at least one comment
         assert candidate is not None, f"No comment for style={style}"
+
+
+def test_topic_diversity_across_turns():
+    """Viewer with diverse interests should produce multiple topics."""
+    persona = Persona(
+        persona_id="p_div",
+        name="多様子",
+        age=22,
+        occupation="フリーター",
+        interests=["ゲーム", "音楽", "アニメ", "料理", "旅行", "スポーツ"],
+        persona_group="フリーター",
+        communication_style="talkative",
+        base_activity_level=0.95,
+        language="ja",
+    )
+    agent = ViewerAgent(persona=persona, viewer_id="v_div", seed=0)
+    topics = set()
+    for turn in range(30):
+        c = agent.decide_comment(turn, "gaming", None)
+        if c:
+            topics.add(c.topic)
+    # 多様なインタレストがあるので複数トピックが出るはず
+    assert len(topics) > 1, f"Expected >1 topics, got {topics}"
