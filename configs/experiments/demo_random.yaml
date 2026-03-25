@@ -1,0 +1,12 @@
+experiment_name: demo_random
+description: "ランダム選択ポリシーによる20ターンデモ"
+seed: 42
+num_viewers: 10
+num_turns: 20
+policy: random
+streamer_config:
+  name: Aoi
+  topics: [gaming, music, anime, technology]
+  response_style: friendly
+persona_data: data/personas/sample_personas.jsonl
+output_dir: outputs/runs

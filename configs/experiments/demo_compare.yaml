@@ -1,0 +1,15 @@
+experiment_name: demo_compare
+description: "random vs rule_based の比較実験"
+seed: 42
+num_viewers: 10
+num_turns: 20
+policies:
+  - random
+  - rule_based
+  - score_based
+streamer_config:
+  name: Aoi
+  topics: [gaming, music, anime, technology]
+  response_style: friendly
+persona_data: data/personas/sample_personas.jsonl
+output_dir: outputs/runs

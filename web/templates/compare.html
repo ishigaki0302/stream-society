@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Runs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Compare Runs</h1>
+    <p class="page-subtitle">複数のシミュレーション実行結果を比較分析する</p>
+</div>
+
+<div class="compare-layout">
+    <!-- Run Selector -->
+    <div class="selector-panel">
+        <h2 class="panel-title">Select Runs</h2>
+        <div class="run-selector">
+            {% if runs %}
+            {% for run in runs %}
+            <label class="run-checkbox-item">
+                <input
+                    type="checkbox"
+                    class="run-checkbox"
+                    value="{{ run.run_id }}"
+                    data-policy="{{ run.policy }}"
+                >
+                <div class="run-checkbox-info">
+                    <span class="run-checkbox-id">{{ run.run_id[:16] }}...</span>
+                    <span class="policy-badge policy-{{ run.policy }}">{{ run.policy }}</span>
+                    <span class="run-checkbox-meta">{{ run.num_turns }}T / {{ run.num_viewers }}V</span>
+                </div>
+            </label>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <p>No runs available. Run a simulation first.</p>
+                <code>ss demo</code>
+            </div>
+            {% endif %}
+        </div>
+        <button class="btn btn-primary" id="compare-btn" onclick="loadComparison()">
+            Compare Selected
+        </button>
+    </div>
+
+    <!-- Comparison Results -->
+    <div class="results-panel">
+        <h2 class="panel-title">Comparison Results</h2>
+        <div id="compare-results">
+            <div class="empty-state">
+                <p>実行を選択して比較ボタンを押してください</p>
+            </div>
+        </div>
+
+        <!-- Engagement Chart -->
+        <div id="chart-container" class="chart-container" style="display:none;">
+            <h3 class="chart-title">Metrics Overview</h3>
+            <div id="metrics-chart" class="metrics-chart"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/compare.js"></script>
+{% endblock %}

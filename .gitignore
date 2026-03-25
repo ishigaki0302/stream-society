@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# stream-society: generated outputs & local DB
+outputs/runs/
+db/
+*.sqlite
+*.parquet

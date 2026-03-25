@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Run: {{ run_id[:12] }}{% endblock %}
+
+{% block content %}
+<div class="run-viewer-header">
+    <div class="run-viewer-title">
+        <a href="/" class="back-link">&#8592; Dashboard</a>
+        <h1>Run Viewer</h1>
+        <span class="run-id-display">{{ run_id }}</span>
+    </div>
+    <div class="run-meta">
+        <span class="meta-badge">Policy: <strong id="meta-policy">{{ summary.policy }}</strong></span>
+        <span class="meta-badge">Turns: <strong>{{ summary.num_turns }}</strong></span>
+        <span class="meta-badge">Viewers: <strong>{{ summary.num_viewers }}</strong></span>
+    </div>
+</div>
+
+<div class="stream-layout">
+    <!-- Left Panel: Stream Screen -->
+    <div class="stream-panel">
+        <div class="stream-screen">
+            <div class="stream-avatar-area">
+                <div class="avatar-placeholder">
+                    <span class="avatar-icon">&#127909;</span>
+                    <span class="avatar-name" id="streamer-name">Aoi</span>
+                    <span class="live-badge">LIVE</span>
+                </div>
+            </div>
+            <div class="stream-info-bar">
+                <div class="topic-display">
+                    <span class="topic-label">Current Topic:</span>
+                    <span class="topic-value" id="current-topic">-</span>
+                </div>
+                <div class="turn-display">
+                    <span class="turn-label">Turn</span>
+                    <span class="turn-number" id="turn-display">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Streamer Response Box -->
+        <div class="response-box" id="response-box">
+            <div class="response-header">
+                <span class="response-icon">&#128172;</span>
+                <span class="response-label">Streamer Response</span>
+            </div>
+            <div class="response-text" id="response-text">
+                -- シミュレーション再生待機中 --
+            </div>
+        </div>
+
+        <!-- Metrics Bar -->
+        <div class="metrics-bar">
+            <div class="metric-item">
+                <span class="metric-label">Engagement</span>
+                <span class="metric-value" id="m-engagement">-</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Avg Sentiment</span>
+                <span class="metric-value" id="m-sentiment">-</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Candidates</span>
+                <span class="metric-value" id="m-candidates">-</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Safety</span>
+                <span class="metric-value" id="m-safety">{{ "%.1f"|format(summary.safety_rate * 100) }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Chat Replay -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <span class="chat-title">&#128172; Chat Replay</span>
+            <span class="viewer-count" id="viewer-count">{{ summary.num_viewers }} viewers</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-placeholder">
+                タイムラインスクラバーを動かしてチャットを再生
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timeline Scrubber -->
+<div class="timeline-container">
+    <div class="timeline-header">
+        <span class="timeline-label">Timeline</span>
+        <span class="timeline-position">Turn <span id="scrubber-display">0</span> / <span id="total-turns">{{ summary.num_turns }}</span></span>
+    </div>
+    <input
+        type="range"
+        id="timeline-scrubber"
+        class="timeline-scrubber"
+        min="0"
+        max="{{ summary.num_turns - 1 }}"
+        value="0"
+        step="1"
+    >
+    <div class="timeline-marks" id="timeline-marks"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const RUN_ID = "{{ run_id }}";
+    const NUM_TURNS = {{ summary.num_turns }};
+</script>
+<script src="/static/js/run_viewer.js"></script>
+{% endblock %}
