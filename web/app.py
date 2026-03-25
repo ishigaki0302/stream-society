@@ -20,6 +20,8 @@ _PROJECT_ROOT = Path(__file__).parent.parent
 _OUTPUTS_DIR = _PROJECT_ROOT / Path(os.environ.get("OUTPUT_DIR", "outputs")) / "runs"
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 _STATIC_DIR = Path(__file__).parent / "static"
+_PERSONAS_FULL = _PROJECT_ROOT / "data" / "personas" / "aituber_personas.jsonl"
+_PERSONAS_SAMPLE = _PROJECT_ROOT / "data" / "personas" / "aituber_sample.jsonl"
 
 app = FastAPI(
     title="StreamSociety",
@@ -32,6 +34,61 @@ app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 # Templates
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+
+
+def _personas_path() -> Optional[Path]:
+    """Return path to persona JSONL file, preferring full dataset over sample."""
+    if _PERSONAS_FULL.exists():
+        return _PERSONAS_FULL
+    if _PERSONAS_SAMPLE.exists():
+        return _PERSONAS_SAMPLE
+    return None
+
+
+def _load_personas() -> List[Dict[str, Any]]:
+    """Load all AItuber personas from JSONL file."""
+    path = _personas_path()
+    if path is None:
+        return []
+    personas: List[Dict[str, Any]] = []
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    personas.append(json.loads(line))
+    except Exception as e:
+        logger.warning("Failed to load personas from %s: %s", path, e)
+    return personas
+
+
+def _load_persona_by_id(persona_id: str) -> Optional[Dict[str, Any]]:
+    """Load a single persona by persona_id."""
+    for persona in _load_personas():
+        if persona.get("persona_id") == persona_id:
+            return persona
+    return None
+
+
+def _runs_for_persona(persona_id: str) -> List[Dict[str, Any]]:
+    """Find runs whose summary.json references streamer_persona_id."""
+    runs: List[Dict[str, Any]] = []
+    if not _OUTPUTS_DIR.exists():
+        return runs
+    for run_dir in sorted(_OUTPUTS_DIR.iterdir(), reverse=True):
+        if not run_dir.is_dir():
+            continue
+        summary_path = run_dir / "summary.json"
+        if not summary_path.exists():
+            continue
+        try:
+            with open(summary_path, encoding="utf-8") as f:
+                summary = json.load(f)
+            if summary.get("streamer_persona_id") == persona_id:
+                runs.append(summary)
+        except Exception as e:
+            logger.warning("Failed to load summary from %s: %s", run_dir, e)
+    return runs
 
 
 def _list_runs() -> List[Dict[str, Any]]:
@@ -157,6 +214,71 @@ async def get_compare_data(run_ids: str = "") -> JSONResponse:
             results.append(data["summary"])
 
     return JSONResponse(content={"runs": results})
+
+
+@app.get("/personas", response_class=HTMLResponse)
+async def personas_list(
+    request: Request,
+    genre: Optional[str] = None,
+    personality: Optional[str] = None,
+) -> HTMLResponse:
+    """AItuber ペルソナ一覧ページ。"""
+    personas = _load_personas()
+
+    if genre:
+        personas = [p for p in personas if genre.lower() in p.get("genre_hint", "").lower()]
+
+    if personality:
+        personas = [
+            p
+            for p in personas
+            if any(personality.lower() in kw.lower() for kw in p.get("personality_keywords", []))
+        ]
+
+    # Collect unique genre hints for filter dropdown
+    all_genres: List[str] = []
+    seen_genres: set = set()
+    for p in _load_personas():
+        g = p.get("genre_hint", "")
+        if g and g not in seen_genres:
+            all_genres.append(g)
+            seen_genres.add(g)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="personas.html",
+        context={
+            "personas": personas,
+            "all_genres": all_genres,
+            "selected_genre": genre or "",
+            "selected_personality": personality or "",
+        },
+    )
+
+
+@app.get("/personas/{persona_id}/data", response_class=JSONResponse)
+async def get_persona_data(persona_id: str) -> JSONResponse:
+    """API endpoint returning persona data as JSON."""
+    persona = _load_persona_by_id(persona_id)
+    if persona is None:
+        raise HTTPException(status_code=404, detail=f"Persona '{persona_id}' not found")
+    return JSONResponse(content=persona)
+
+
+@app.get("/personas/{persona_id}", response_class=HTMLResponse)
+async def persona_detail(request: Request, persona_id: str) -> HTMLResponse:
+    """キャラクター詳細ページ。"""
+    persona = _load_persona_by_id(persona_id)
+    if persona is None:
+        raise HTTPException(status_code=404, detail=f"Persona '{persona_id}' not found")
+
+    runs = _runs_for_persona(persona_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="persona_detail.html",
+        context={"persona": persona, "runs": runs},
+    )
 
 
 def create_app() -> FastAPI:

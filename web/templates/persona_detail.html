@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}{{ persona.name }} - キャラクター詳細{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/personas" class="back-link">&larr; キャラクター一覧に戻る</a>
+</div>
+
+<div class="persona-detail-layout">
+    <!-- Left column: Character card -->
+    <div class="persona-left-col">
+        <div class="persona-card">
+            <div class="persona-card-top">
+                <div class="persona-avatar-icon">&#128100;</div>
+                <h1 class="persona-card-name">{{ persona.name }}</h1>
+                {% if persona.name_reading %}
+                <p class="persona-name-reading">{{ persona.name_reading }}</p>
+                {% endif %}
+                {% if persona.fan_name %}
+                <p class="persona-fan-name">ファン: {{ persona.fan_name }}</p>
+                {% endif %}
+            </div>
+
+            <div class="persona-info-section">
+                {% if persona.genre_hint %}
+                <div class="persona-info-row">
+                    <span class="persona-info-label">ジャンル</span>
+                    <span class="genre-badge">{{ persona.genre_hint }}</span>
+                </div>
+                {% endif %}
+
+                {% if persona.gender_presentation %}
+                <div class="persona-info-row">
+                    <span class="persona-info-label">性別</span>
+                    <span class="persona-info-value">{{ persona.gender_presentation }}</span>
+                </div>
+                {% endif %}
+
+                {% if persona.pronoun %}
+                <div class="persona-info-row">
+                    <span class="persona-info-label">一人称</span>
+                    <span class="persona-info-value">{{ persona.pronoun }}</span>
+                </div>
+                {% endif %}
+
+                {% if persona.speech_style %}
+                <div class="persona-info-row">
+                    <span class="persona-info-label">口調</span>
+                    <span class="persona-info-value">{{ persona.speech_style }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if persona.personality_keywords %}
+            <div class="persona-info-section">
+                <p class="persona-info-label">性格キーワード</p>
+                <div class="personality-tags" style="margin-top:0.5rem;">
+                    {% for kw in persona.personality_keywords %}
+                    <span class="personality-tag">{{ kw }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if persona.system_prompt %}
+            <div class="persona-info-section">
+                <p class="persona-info-label">システムプロンプト</p>
+                <div class="system-prompt-box">{{ persona.system_prompt }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right column: Themes and runs -->
+    <div class="persona-right-col">
+        {% if persona.themes %}
+        <section class="section">
+            <h2 class="section-title">配信テーマ一覧</h2>
+            <div class="theme-list">
+                {% for theme in persona.themes %}
+                <div class="theme-item">
+                    <h4 class="theme-title">{{ theme.title }}</h4>
+                    {% if theme.content %}
+                    <p class="theme-content">{{ theme.content[:100] }}{% if theme.content|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="section">
+            <h2 class="section-title">関連する実験ラン</h2>
+            {% if runs %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Run ID</th>
+                            <th>Policy</th>
+                            <th>Engagement</th>
+                            <th>Safety</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for run in runs %}
+                        <tr class="table-row">
+                            <td>
+                                <span class="run-id-badge">{{ run.run_id[:12] }}...</span>
+                            </td>
+                            <td>
+                                <span class="policy-badge policy-{{ run.policy }}">{{ run.policy }}</span>
+                            </td>
+                            <td>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: {{ (run.engagement_proxy * 100)|round }}%"></div>
+                                    <span class="metric-val">{{ "%.3f"|format(run.engagement_proxy) }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="safety-badge {% if run.safety_rate > 0.9 %}safe{% elif run.safety_rate > 0.7 %}warn{% else %}danger{% endif %}">
+                                    {{ "%.1f"|format(run.safety_rate * 100) }}%
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/runs/{{ run.run_id }}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:2rem;">
+                <div class="empty-icon">&#9654;</div>
+                <h3>実験データがありません</h3>
+                <p>このキャラクターで実験を実行するには:</p>
+                <code class="code-example">ss simulate --persona {{ persona.persona_id }}</code>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

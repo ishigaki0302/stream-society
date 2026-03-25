@@ -940,6 +940,299 @@ body {
     margin-top: 1.5rem;
 }
 
+/* ============================================================
+   Character / Persona Pages
+   ============================================================ */
+
+/* Filter bar */
+.persona-filter-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.filter-select,
+.filter-input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    padding: 0.4rem 0.75rem;
+    outline: none;
+    min-width: 160px;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    border-color: var(--accent-purple);
+}
+
+/* Character grid */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+
+/* Character card */
+.character-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.character-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius-lg);
+    background: var(--gradient-main);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: -1;
+}
+
+.character-card:hover {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 1px var(--accent-purple), var(--shadow-md);
+}
+
+.character-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.character-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.character-speech-style {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.character-first-theme {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.character-card-footer {
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+/* Genre badge */
+.genre-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(124, 58, 237, 0.2);
+    color: #a78bfa;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    white-space: nowrap;
+}
+
+/* Personality tags */
+.personality-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.personality-tag {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-accent);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+/* Persona detail page layout */
+.persona-detail-layout {
+    display: grid;
+    grid-template-columns: 40% 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.persona-left-col {
+    position: sticky;
+    top: 76px;
+}
+
+/* Persona card (detail) */
+.persona-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.persona-card-top {
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.persona-avatar-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
+.persona-card-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.25rem;
+}
+
+.persona-name-reading {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 0 0.25rem;
+}
+
+.persona-fan-name {
+    font-size: 0.85rem;
+    color: var(--accent-blue);
+    margin: 0;
+}
+
+.persona-info-section {
+    padding-top: 0.5rem;
+}
+
+.persona-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 0.5rem;
+}
+
+.persona-info-row:last-child {
+    border-bottom: none;
+}
+
+.persona-info-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.persona-info-value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+/* System prompt box */
+.system-prompt-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 0.5rem;
+}
+
+/* Theme list */
+.theme-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.theme-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-purple);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s;
+}
+
+.theme-item:hover {
+    border-color: var(--accent-blue);
+    border-left-color: var(--accent-blue);
+}
+
+.theme-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+}
+
+.theme-content {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .stream-layout {
@@ -969,5 +1262,17 @@ body {
 
     .hero-title {
         font-size: 1.5rem;
+    }
+
+    .character-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .persona-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .persona-left-col {
+        position: static;
     }
 }
