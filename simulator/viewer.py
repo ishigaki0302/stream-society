@@ -126,7 +126,7 @@ _INTEREST_TO_TOPIC: dict[str, str] = {
     "sports": "sports",
     "ファッション": "fashion",
     "fashion": "fashion",
-    "映画": "anime",        # anime/entertainment 扱い
+    "映画": "anime",  # anime/entertainment 扱い
     "読書": "lifestyle",
     "マンガ": "anime",
     "コスプレ": "anime",
@@ -230,8 +230,7 @@ class ViewerAgent:
 
         # 自分のインタレストから英語 topic ラベルに変換してサンプリング
         topics = [
-            _INTEREST_TO_TOPIC.get(interest, "lifestyle")
-            for interest in self.persona.interests
+            _INTEREST_TO_TOPIC.get(interest, "lifestyle") for interest in self.persona.interests
         ]
         return rng.choice(topics)
 
