@@ -196,6 +196,53 @@ def ingest_personas(
     console.print(f"\n[green]Ingestion complete. Output: {output_dir}[/green]")
 
 
+@app.command(name="ingest-aituber")
+def ingest_aituber(
+    output: Path = typer.Option(
+        Path("data/personas/aituber_personas.jsonl"),
+        "--output",
+        help="Output JSONL path for parsed personas",
+    ),
+    use_sample: bool = typer.Option(
+        False,
+        "--use-sample",
+        help="Use bundled sample instead of HuggingFace download",
+    ),
+) -> None:
+    """AItuber-Personas-Japan データセットを取り込む."""
+    from ingestion.aituber_ingestion import (
+        SAMPLE_FALLBACK,
+        ingest_from_huggingface,
+        load_from_jsonl,
+        save_to_jsonl,
+    )
+
+    if use_sample:
+        console.print(f"[cyan]サンプルファイルを使用: {SAMPLE_FALLBACK}[/cyan]")
+        if not SAMPLE_FALLBACK.exists():
+            console.print(f"[red]サンプルファイルが見つかりません: {SAMPLE_FALLBACK}[/red]")
+            raise typer.Exit(1)
+        personas = load_from_jsonl(SAMPLE_FALLBACK)
+        # Resolve output relative to project root if not absolute
+        out_path = output if output.is_absolute() else Path(__file__).parent.parent / output
+        save_to_jsonl(personas, out_path)
+        console.print(f"[green]{len(personas)} 件のペルソナを保存しました: {out_path}[/green]")
+    else:
+        console.print(
+            f"[cyan]HuggingFace からダウンロード中: DataPilot/AItuber-Personas-Japan[/cyan]"
+        )
+        out_path = output if output.is_absolute() else Path(__file__).parent.parent / output
+        try:
+            personas = ingest_from_huggingface(out_path)
+            console.print(
+                f"[green]{len(personas)} 件の有効なペルソナを取り込みました: {out_path}[/green]"
+            )
+        except ImportError as e:
+            console.print(f"[red]エラー: {e}[/red]")
+            console.print("[yellow]--use-sample フラグでサンプルデータを使用できます[/yellow]")
+            raise typer.Exit(1)
+
+
 @app.command()
 def demo(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),

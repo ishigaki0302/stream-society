@@ -7,6 +7,25 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
+class AItuberPersona(BaseModel):
+    """AItuber character persona sourced from AItuber-Personas-Japan dataset."""
+
+    persona_id: str
+    name: str  # full name
+    name_reading: str = ""  # フリガナ
+    fan_name: str = ""  # ファンネーム
+    system_prompt: str  # LLM system prompt
+    concept: str  # Full concept document
+    themes: List[Dict] = []  # List of {"title": str, "content": str}
+    genre_hint: str = ""  # e.g. "雑談・癒し系"
+    personality_keywords: List[str] = []  # e.g. ["ツンデレ", "夜行性"]
+    speech_style: str = ""  # e.g. "ダウナー系・省エネ"
+    gender_presentation: str = ""  # e.g. "中性的"
+    pronoun: str = ""  # 一人称
+    quality_notes: str = ""
+    is_valid: bool = True
+
+
 class Persona(BaseModel):
     """Viewer persona definition."""
 
