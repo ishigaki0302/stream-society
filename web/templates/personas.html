@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}AItuber キャラクター一覧{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>AItuber キャラクター一覧</h1>
+    <p class="page-subtitle">配信シミュレーションに使用できる AItuber ペルソナ</p>
+</div>
+
+<section class="section">
+    <form class="persona-filter-bar" method="get" action="/personas">
+        <div class="filter-group">
+            <label class="filter-label" for="genre-select">ジャンル</label>
+            <select class="filter-select" id="genre-select" name="genre">
+                <option value="">すべて</option>
+                {% for g in all_genres %}
+                <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label" for="personality-input">性格キーワード</label>
+            <input
+                class="filter-input"
+                id="personality-input"
+                type="text"
+                name="personality"
+                placeholder="例: ツンデレ"
+                value="{{ selected_personality }}"
+            >
+        </div>
+        <button class="btn btn-sm btn-primary" type="submit">絞り込む</button>
+        {% if selected_genre or selected_personality %}
+        <a href="/personas" class="btn btn-sm" style="background:var(--bg-tertiary);color:var(--text-secondary);">クリア</a>
+        {% endif %}
+    </form>
+</section>
+
+<section class="section">
+    <div class="section-header">
+        <span class="run-count">{{ personas|length }} キャラクター</span>
+    </div>
+
+    {% if personas %}
+    <div class="character-grid">
+        {% for p in personas %}
+        <div class="character-card">
+            <div class="character-card-header">
+                <h3 class="character-name">{{ p.name }}</h3>
+                {% if p.genre_hint %}
+                <span class="genre-badge genre-{{ p.genre_hint|replace('・', '-')|replace('系', '')|replace('　', '') }}">{{ p.genre_hint }}</span>
+                {% endif %}
+            </div>
+
+            {% if p.personality_keywords %}
+            <div class="personality-tags">
+                {% for kw in p.personality_keywords %}
+                <span class="personality-tag">{{ kw }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if p.speech_style %}
+            <p class="character-speech-style">口調: {{ p.speech_style }}</p>
+            {% endif %}
+
+            {% if p.themes and p.themes|length > 0 %}
+            <p class="character-first-theme">&#9654; {{ p.themes[0].title }}</p>
+            {% endif %}
+
+            <div class="character-card-footer">
+                <a href="/personas/{{ p.persona_id }}" class="btn btn-sm btn-primary">詳細を見る</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">&#128100;</div>
+        <h3>キャラクターが見つかりません</h3>
+        {% if selected_genre or selected_personality %}
+        <p>フィルター条件に一致するキャラクターがいません。</p>
+        <a href="/personas" class="btn btn-sm btn-primary" style="margin-top:1rem;">フィルターをクリア</a>
+        {% else %}
+        <p>ペルソナデータが見つかりません。</p>
+        <code class="code-example">ss personas download</code>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

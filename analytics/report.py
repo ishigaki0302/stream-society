@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +100,74 @@ def print_summary(summary) -> None:
         table.add_row(metric, value)
 
     console.print(table)
+
+
+def aggregate_by_character(run_dirs: List[Path]) -> List[Dict]:
+    """複数 run から AItuber キャラクター別の指標集計を返す。
+
+    run の summary.json に streamer_persona_id がある場合に集計対象とする。
+
+    Returns list of dicts with:
+        persona_id, name, policy, engagement_proxy, safety_rate,
+        topic_diversity, sentiment_shift, run_count
+    """
+    from collections import defaultdict
+
+    buckets: Dict[str, Dict] = defaultdict(
+        lambda: {
+            "persona_id": "",
+            "name": "",
+            "policy": "",
+            "engagement_proxy_sum": 0.0,
+            "safety_rate_sum": 0.0,
+            "topic_diversity_sum": 0.0,
+            "sentiment_shift_sum": 0.0,
+            "run_count": 0,
+        }
+    )
+
+    for run_dir in run_dirs:
+        summary_path = run_dir / "summary.json"
+        if not summary_path.exists():
+            continue
+        try:
+            with open(summary_path, encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.warning("Failed to load summary from %s: %s", run_dir, e)
+            continue
+
+        persona_id = data.get("streamer_persona_id")
+        if not persona_id:
+            continue
+
+        bucket = buckets[persona_id]
+        bucket["persona_id"] = persona_id
+        bucket["name"] = data.get("streamer_name", persona_id)
+        bucket["policy"] = data.get("policy", "")
+        bucket["engagement_proxy_sum"] += float(data.get("engagement_proxy", 0.0))
+        bucket["safety_rate_sum"] += float(data.get("safety_rate", 0.0))
+        bucket["topic_diversity_sum"] += float(data.get("topic_diversity", 0.0))
+        bucket["sentiment_shift_sum"] += float(data.get("sentiment_shift", 0.0))
+        bucket["run_count"] += 1
+
+    results: List[Dict] = []
+    for bucket in buckets.values():
+        count = bucket["run_count"]
+        results.append(
+            {
+                "persona_id": bucket["persona_id"],
+                "name": bucket["name"],
+                "policy": bucket["policy"],
+                "engagement_proxy": bucket["engagement_proxy_sum"] / count,
+                "safety_rate": bucket["safety_rate_sum"] / count,
+                "topic_diversity": bucket["topic_diversity_sum"] / count,
+                "sentiment_shift": bucket["sentiment_shift_sum"] / count,
+                "run_count": count,
+            }
+        )
+
+    return results
 
 
 def export_metrics_csv(run_dirs: List[Path], output: Path) -> None:
