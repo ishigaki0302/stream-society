@@ -5,15 +5,24 @@ from __future__ import annotations
 import json
 import logging
 import re
-import uuid
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
 
+# Schemas (relative import works when called as part of the package;
+# use sys.path trick for standalone CLI use)
+try:
+    from simulator.schemas import AItuberPersona, Persona
+except ImportError:
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from simulator.schemas import AItuberPersona, Persona  # type: ignore[no-redef]
+
 # Import here to avoid hard dependency
 try:
-    from datasets import load_dataset as hf_load_dataset
+    from datasets import load_dataset as hf_load_dataset  # noqa: F401
 
     HF_AVAILABLE = True
 except ImportError:

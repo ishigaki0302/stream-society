@@ -229,7 +229,7 @@ def ingest_aituber(
         console.print(f"[green]{len(personas)} 件のペルソナを保存しました: {out_path}[/green]")
     else:
         console.print(
-            f"[cyan]HuggingFace からダウンロード中: DataPilot/AItuber-Personas-Japan[/cyan]"
+            "[cyan]HuggingFace からダウンロード中: DataPilot/AItuber-Personas-Japan[/cyan]"
         )
         out_path = output if output.is_absolute() else Path(__file__).parent.parent / output
         try:
