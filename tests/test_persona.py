@@ -1,17 +1,15 @@
 """Tests for simulator.persona module."""
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
-
-import pytest
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from simulator.persona import compute_distribution, load_personas, sample_personas
 from simulator.schemas import Persona
-
 
 SAMPLE_DATA = Path(__file__).parent.parent / "data" / "personas" / "sample_personas.jsonl"
 

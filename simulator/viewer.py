@@ -1,4 +1,5 @@
 """Viewer agent for the stream-society simulator."""
+
 from __future__ import annotations
 
 import random
@@ -147,7 +148,7 @@ class ViewerAgent:
             prob *= 1.3
 
         # Boost from affinity
-        prob *= (0.7 + 0.6 * self.state.affinity_to_streamer)
+        prob *= 0.7 + 0.6 * self.state.affinity_to_streamer
 
         # Clamp
         prob = min(prob, 0.95)
@@ -231,16 +232,12 @@ class ViewerAgent:
         """Update viewer state after a turn."""
         if was_selected:
             # Affinity boost when selected
-            self.state.affinity_to_streamer = min(
-                1.0, self.state.affinity_to_streamer + 0.05
-            )
+            self.state.affinity_to_streamer = min(1.0, self.state.affinity_to_streamer + 0.05)
             self.state.emotion_state = "happy"
             self.state.participation_style = "active"
         else:
             # Slight affinity decay
-            self.state.affinity_to_streamer = max(
-                0.0, self.state.affinity_to_streamer - 0.01
-            )
+            self.state.affinity_to_streamer = max(0.0, self.state.affinity_to_streamer - 0.01)
             if self.state.affinity_to_streamer < 0.3:
                 self.state.emotion_state = "bored"
             else:
@@ -248,10 +245,6 @@ class ViewerAgent:
 
         # Activity level drift
         if self.state.affinity_to_streamer > 0.7:
-            self.state.activity_level = min(
-                1.0, self.state.activity_level + 0.02
-            )
+            self.state.activity_level = min(1.0, self.state.activity_level + 0.02)
         else:
-            self.state.activity_level = max(
-                0.1, self.state.activity_level - 0.01
-            )
+            self.state.activity_level = max(0.1, self.state.activity_level - 0.01)

@@ -1,10 +1,9 @@
 """Tests for simulator.viewer module."""
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
-
-import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -137,7 +136,9 @@ def test_all_communication_styles():
         agent = ViewerAgent(persona=persona, viewer_id="v_test", seed=1)
         candidate = None
         for turn in range(10):
-            candidate = agent.decide_comment(turn=turn, streamer_topic="gaming", recent_response=None)
+            candidate = agent.decide_comment(
+                turn=turn, streamer_topic="gaming", recent_response=None
+            )
             if candidate is not None:
                 break
         # Should have produced at least one comment

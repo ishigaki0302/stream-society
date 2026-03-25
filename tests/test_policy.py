@@ -1,4 +1,5 @@
 """Tests for simulator.policy modules."""
+
 from __future__ import annotations
 
 import sys
@@ -43,6 +44,7 @@ def make_comment(
 
 # --- RandomPolicy ---
 
+
 def test_random_returns_none_for_empty():
     policy = RandomPolicy(seed=42)
     assert policy.select([], {}) is None
@@ -63,6 +65,7 @@ def test_random_single_candidate():
 
 
 # --- RuleBasedPolicy ---
+
 
 def test_rule_based_returns_none_for_empty():
     policy = RuleBasedPolicy(seed=42)
@@ -107,6 +110,7 @@ def test_rule_based_high_sentiment_among_safe():
 
 # --- ScoreBasedPolicy ---
 
+
 def test_score_based_returns_none_for_empty():
     policy = ScoreBasedPolicy()
     assert policy.select([], {}) is None
@@ -123,8 +127,12 @@ def test_score_based_returns_candidate():
 def test_score_based_picks_highest_score():
     """ScoreBasedPolicy should pick the comment with the highest weighted score."""
     policy = ScoreBasedPolicy()
-    low = make_comment("c1", sentiment=-0.5, novelty_score=0.1, toxicity_score=0.5, question_flag=False)
-    high = make_comment("c2", sentiment=1.0, novelty_score=1.0, toxicity_score=0.0, question_flag=True)
+    low = make_comment(
+        "c1", sentiment=-0.5, novelty_score=0.1, toxicity_score=0.5, question_flag=False
+    )
+    high = make_comment(
+        "c2", sentiment=1.0, novelty_score=1.0, toxicity_score=0.0, question_flag=True
+    )
     result = policy.select([low, high], {})
     assert result == high
 
@@ -132,13 +140,16 @@ def test_score_based_picks_highest_score():
 def test_score_based_question_bonus():
     """ScoreBasedPolicy should give bonus to questions."""
     policy = ScoreBasedPolicy()
-    no_q = make_comment("c1", sentiment=0.5, novelty_score=0.5, toxicity_score=0.0, question_flag=False)
+    no_q = make_comment(
+        "c1", sentiment=0.5, novelty_score=0.5, toxicity_score=0.0, question_flag=False
+    )
     q = make_comment("c2", sentiment=0.5, novelty_score=0.5, toxicity_score=0.0, question_flag=True)
     result = policy.select([no_q, q], {})
     assert result == q  # question gets bonus 0.2
 
 
 # --- ContextualBanditPolicy ---
+
 
 def test_bandit_returns_none_for_empty():
     policy = ContextualBanditPolicy(alpha=1.0, seed=42)
@@ -161,6 +172,7 @@ def test_bandit_update_does_not_crash():
 
 
 # --- Factory ---
+
 
 def test_create_policy_random():
     policy = create_policy("random", seed=42)

@@ -1,4 +1,5 @@
 """Random comment selection policy."""
+
 from __future__ import annotations
 
 import random

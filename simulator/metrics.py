@@ -1,4 +1,5 @@
 """Metrics computation for simulation runs."""
+
 from __future__ import annotations
 
 import math
@@ -68,9 +69,7 @@ def _sentiment_shift(turn_logs: List[TurnLog]) -> float:
     turn_sentiments = []
     for turn in turn_logs:
         if turn.comment_candidates:
-            avg = sum(c.sentiment for c in turn.comment_candidates) / len(
-                turn.comment_candidates
-            )
+            avg = sum(c.sentiment for c in turn.comment_candidates) / len(turn.comment_candidates)
             turn_sentiments.append(avg)
 
     if len(turn_sentiments) < 2:
@@ -99,9 +98,7 @@ def compute_run_summary(
     # Engagement proxy: average comments per turn, normalized by viewer count
     avg_comments_per_turn = total_comments / num_turns if num_turns > 0 else 0.0
     engagement_proxy = (
-        avg_comments_per_turn / run_config.num_viewers
-        if run_config.num_viewers > 0
-        else 0.0
+        avg_comments_per_turn / run_config.num_viewers if run_config.num_viewers > 0 else 0.0
     )
 
     # Unique participants
@@ -110,24 +107,15 @@ def compute_run_summary(
         for c in turn.comment_candidates:
             unique_viewers.add(c.viewer_id)
     unique_participant_rate = (
-        len(unique_viewers) / run_config.num_viewers
-        if run_config.num_viewers > 0
-        else 0.0
+        len(unique_viewers) / run_config.num_viewers if run_config.num_viewers > 0 else 0.0
     )
 
     # Topic diversity
     topic_diversity = _topic_entropy(turn_logs)
 
     # Safety rate: 1 - (toxic / total)
-    total_toxic = sum(
-        1
-        for t in turn_logs
-        for c in t.comment_candidates
-        if c.toxicity_score > 0.3
-    )
-    safety_rate = (
-        1.0 - (total_toxic / total_comments) if total_comments > 0 else 1.0
-    )
+    total_toxic = sum(1 for t in turn_logs for c in t.comment_candidates if c.toxicity_score > 0.3)
+    safety_rate = 1.0 - (total_toxic / total_comments) if total_comments > 0 else 1.0
 
     # Sentiment shift
     sentiment_shift = _sentiment_shift(turn_logs)

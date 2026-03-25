@@ -1,4 +1,5 @@
 """vLLM adapter stub for OpenAI-compatible API."""
+
 from __future__ import annotations
 
 import logging
@@ -39,8 +40,7 @@ class VLLMAdapter(LLMAdapter):
                 return False
         """
         logger.warning(
-            "VLLMAdapter.is_available() is a stub. "
-            "vLLM endpoint at %s not checked.",
+            "VLLMAdapter.is_available() is a stub. " "vLLM endpoint at %s not checked.",
             self._base_url,
         )
         return False

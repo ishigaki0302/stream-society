@@ -1,4 +1,5 @@
 """MMDAgent-EX WebSocket bridge stub."""
+
 from __future__ import annotations
 
 import logging
@@ -39,8 +40,7 @@ class MMDAgentBridge(AvatarBridge):
             return asyncio.run(_connect())
         """
         logger.warning(
-            "MMDAgentBridge.connect() is a stub. "
-            "WebSocket URL: %s. Returning False.",
+            "MMDAgentBridge.connect() is a stub. " "WebSocket URL: %s. Returning False.",
             self._ws_url,
         )
         return False

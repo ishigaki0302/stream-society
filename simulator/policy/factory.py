@@ -1,4 +1,5 @@
 """Policy factory for creating selection policies by name."""
+
 from __future__ import annotations
 
 from .contextual_bandit_stub import ContextualBanditPolicy
@@ -28,7 +29,5 @@ def create_policy(name: str, **kwargs):
         ValueError: If the policy name is unknown.
     """
     if name not in POLICIES:
-        raise ValueError(
-            f"Unknown policy: {name}. Available: {list(POLICIES.keys())}"
-        )
+        raise ValueError(f"Unknown policy: {name}. Available: {list(POLICIES.keys())}")
     return POLICIES[name](**kwargs)

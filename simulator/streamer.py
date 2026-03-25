@@ -1,4 +1,5 @@
 """Streamer agent for the stream-society simulator."""
+
 from __future__ import annotations
 
 import itertools

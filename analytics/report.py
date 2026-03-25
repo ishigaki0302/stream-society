@@ -1,4 +1,5 @@
 """Analytics and reporting for stream-society simulation runs."""
+
 from __future__ import annotations
 
 import json
