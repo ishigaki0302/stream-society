@@ -202,3 +202,50 @@ def test_create_policy_unknown_raises():
 def test_all_policies_in_registry():
     expected = {"random", "rule_based", "score_based", "contextual_bandit"}
     assert set(POLICIES.keys()) == expected
+
+
+def test_bandit_learns_to_prefer_questions():
+    """LinUCB は質問コメントに高報酬を与え続けると質問を優先するようになる。"""
+    from simulator.policy.contextual_bandit_stub import ContextualBanditPolicy
+
+    policy = ContextualBanditPolicy(alpha=0.1, seed=0)  # 低alpha=搾取優先
+
+    # 質問コメント: question_flag=True に高報酬を繰り返す
+    q_comment = make_comment(
+        comment_id="q1", sentiment=0.0, novelty_score=0.5, toxicity_score=0.05, question_flag=True
+    )
+    nq_comment = make_comment(
+        comment_id="nq1", sentiment=0.5, novelty_score=0.5, toxicity_score=0.05, question_flag=False
+    )
+
+    for _ in range(50):
+        policy.update(q_comment, reward=1.0)
+        policy.update(nq_comment, reward=0.0)
+
+    # 学習後は質問コメントが選ばれるべき
+    selected = policy.select([nq_comment, q_comment], {})
+    assert selected is not None
+    assert selected.question_flag is True, "学習後は質問コメントを優先するはず"
+
+
+def test_bandit_save_load_state(tmp_path):
+    """save_state / load_state でパラメータが正しく復元される。"""
+    import numpy as np
+    from simulator.policy.contextual_bandit_stub import ContextualBanditPolicy
+
+    policy = ContextualBanditPolicy(alpha=1.0)
+    c = make_comment(
+        comment_id="c1", sentiment=0.5, novelty_score=0.8, toxicity_score=0.0, question_flag=True
+    )
+    policy.update(c, reward=1.0)
+
+    state_path = tmp_path / "bandit_state.json"
+    policy.save_state(state_path)
+
+    policy2 = ContextualBanditPolicy(alpha=1.0)
+    policy2.load_state(state_path)
+
+    np.testing.assert_allclose(policy._A, policy2._A)
+    np.testing.assert_allclose(policy._b, policy2._b)
+    np.testing.assert_allclose(policy._theta, policy2._theta)
+    assert policy2._t == 1

@@ -1,122 +1,153 @@
-"""Contextual Bandit (LinUCB-style) comment selection policy stub."""
+"""Contextual Bandit (LinUCB) comment selection policy."""
 
 from __future__ import annotations
 
-import math
+import json
+from pathlib import Path
 from typing import Dict, List, Optional
+
+import numpy as np
 
 from ..schemas import CommentCandidate
 from .base import SelectionPolicy
 
-# Feature vector indices:
-# [0] sentiment (normalized 0-1)
+# Feature vector:
+# [0] sentiment  (normalized to [0,1])
 # [1] novelty_score
-# [2] safety (1 - toxicity)
+# [2] safety     (1 - toxicity)
 # [3] question_flag (0 or 1)
-# [4] bias term (always 1.0)
+# [4] bias term  (always 1.0)
 _FEATURE_DIM = 5
+_LAMBDA = 1.0  # regularization (初期 A = λI)
 
 
-def _extract_features(candidate: CommentCandidate) -> list[float]:
+def _extract_features(candidate: CommentCandidate) -> np.ndarray:
     """Extract feature vector from a comment candidate."""
-    return [
-        (candidate.sentiment + 1.0) / 2.0,  # normalize to [0,1]
-        candidate.novelty_score,
-        1.0 - candidate.toxicity_score,
-        1.0 if candidate.question_flag else 0.0,
-        1.0,  # bias
-    ]
+    return np.array(
+        [
+            (candidate.sentiment + 1.0) / 2.0,  # normalize [-1,1] → [0,1]
+            candidate.novelty_score,
+            1.0 - candidate.toxicity_score,
+            1.0 if candidate.question_flag else 0.0,
+            1.0,  # bias
+        ],
+        dtype=float,
+    )
 
 
 class ContextualBanditPolicy(SelectionPolicy):
-    """LinUCB-style contextual bandit for comment selection.
+    """Disjoint LinUCB による contextual bandit コメント選択方策。
 
-    This is a stub implementation that has the correct interface
-    but uses simplified weight updates. See docs/contextual_bandit_todo.md
-    for the full implementation plan.
+    Li et al. (2010) "A Contextual-Bandit Approach to Personalized News Article
+    Recommendation" の Disjoint LinUCB アルゴリズムを実装。
+    全候補に共通の (A, b) を持つ shared パラメータモデルを採用。
+
+    UCB score = θᵀx + α * sqrt(xᵀ A⁻¹ x)
+    更新:  A ← A + xxᵀ,  b ← b + r·x,  θ = A⁻¹b
     """
 
     name: str = "contextual_bandit"
 
     def __init__(self, alpha: float = 1.0, seed: int = 42) -> None:
-        """Initialize the contextual bandit.
+        """Initialize the LinUCB policy.
 
         Args:
-            alpha: Exploration parameter. Higher = more exploration.
-            seed: Random seed (unused in stub but kept for interface compatibility).
+            alpha: 探索パラメータ。大きいほど不確実性を重視して探索。
+            seed: 乱数シード（再現性のため保持するが本実装では未使用）。
         """
         self.alpha = alpha
         self._seed = seed
 
-        # Stub: weight vector (theta) initialized to equal weights
-        # In full LinUCB: maintain A matrix (d x d) and b vector (d x 1) per arm
-        self._theta: list[float] = [0.2, 0.2, 0.2, 0.2, 0.2]
+        # A: d×d 正定値行列 (初期値 = λI)
+        self._A: np.ndarray = _LAMBDA * np.eye(_FEATURE_DIM)
+        # b: d 次元ベクトル
+        self._b: np.ndarray = np.zeros(_FEATURE_DIM)
+        # A⁻¹ のキャッシュ (更新のたびに再計算)
+        self._A_inv: np.ndarray = (1.0 / _LAMBDA) * np.eye(_FEATURE_DIM)
+        # θ = A⁻¹ b
+        self._theta: np.ndarray = np.zeros(_FEATURE_DIM)
 
-        # Simplified covariance approximation (diagonal only in stub)
-        # Full impl would use A_inv = (X^T X + lambda*I)^{-1}
-        self._A_diag: list[float] = [1.0] * _FEATURE_DIM
-        self._b: list[float] = [0.0] * _FEATURE_DIM
+        self._t = 0  # update step counter
 
-        self._t = 0  # step counter
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
 
-    def _dot(self, a: list[float], b: list[float]) -> float:
-        """Dot product of two vectors."""
-        return sum(x * y for x, y in zip(a, b))
+    def _ucb_score(self, x: np.ndarray) -> float:
+        """UCB スコアを計算する。
 
-    def _ucb_score(self, features: list[float]) -> float:
-        """Compute UCB score for a feature vector.
-
-        Full LinUCB: score = theta^T x + alpha * sqrt(x^T A^{-1} x)
-        Stub uses diagonal approximation for A^{-1}.
+        score = θᵀx + α * sqrt(xᵀ A⁻¹ x)
         """
-        # Expected reward estimate
-        exploit = self._dot(self._theta, features)
-
-        # Uncertainty estimate (diagonal approximation)
-        variance = sum(features[i] ** 2 / max(self._A_diag[i], 1e-6) for i in range(_FEATURE_DIM))
-        explore = self.alpha * math.sqrt(variance)
-
+        exploit = float(self._theta @ x)
+        variance = float(x @ self._A_inv @ x)
+        # 数値誤差で負になった場合のガード
+        explore = self.alpha * float(np.sqrt(max(variance, 0.0)))
         return exploit + explore
+
+    def _recompute(self) -> None:
+        """A_inv と θ を再計算する。"""
+        # np.linalg.solve(A, I) は A⁻¹ より数値的に安定
+        self._A_inv = np.linalg.solve(self._A, np.eye(_FEATURE_DIM))
+        self._theta = self._A_inv @ self._b
+
+    # ------------------------------------------------------------------
+    # Public interface (SelectionPolicy)
+    # ------------------------------------------------------------------
 
     def select(
         self,
         candidates: List[CommentCandidate],
         context: Dict,
     ) -> Optional[CommentCandidate]:
-        """Select candidate with highest UCB score."""
+        """UCB スコアが最大の候補を選択する。"""
         if not candidates:
             return None
 
-        scored = [(self._ucb_score(_extract_features(c)), c) for c in candidates]
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return scored[0][1]
+        best_score = float("-inf")
+        best = candidates[0]
+        for c in candidates:
+            x = _extract_features(c)
+            score = self._ucb_score(x)
+            if score > best_score:
+                best_score = score
+                best = c
+        return best
 
     def update(self, selected: CommentCandidate, reward: float) -> None:
-        """Update weights based on observed reward.
+        """観測した報酬で (A, b, θ) を更新する。
 
-        Full LinUCB update:
-            A <- A + x x^T
-            b <- b + r x
-            theta <- A^{-1} b
-
-        Stub uses simplified online gradient update.
+        A ← A + xxᵀ
+        b ← b + r·x
+        θ = A⁻¹b  (再計算)
         """
-        features = _extract_features(selected)
+        x = _extract_features(selected)
+        self._A += np.outer(x, x)
+        self._b += reward * x
+        self._recompute()
         self._t += 1
 
-        # Simplified update: gradient step on squared loss
-        # Full impl: Sherman-Morrison rank-1 update on A_inv
-        predicted = self._dot(self._theta, features)
-        error = reward - predicted
-        lr = 0.1 / math.sqrt(self._t)
+    # ------------------------------------------------------------------
+    # State persistence
+    # ------------------------------------------------------------------
 
-        for i in range(_FEATURE_DIM):
-            self._theta[i] += lr * error * features[i]
-            self._A_diag[i] += features[i] ** 2
-            self._b[i] += reward * features[i]
+    def save_state(self, path: Path) -> None:
+        """学習済みパラメータを JSON で保存する（run をまたぐ継続学習用）。"""
+        state = {
+            "alpha": self.alpha,
+            "t": self._t,
+            "A": self._A.tolist(),
+            "b": self._b.tolist(),
+        }
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(state, f)
 
-        # TODO: Full implementation should:
-        # 1. Maintain A matrix (d x d) initialized as identity * lambda
-        # 2. Use Sherman-Morrison formula for O(d^2) rank-1 update of A_inv
-        # 3. Recompute theta = A_inv @ b after each update
-        # See docs/contextual_bandit_todo.md for details
+    def load_state(self, path: Path) -> None:
+        """保存済みパラメータを読み込む。"""
+        with open(path, encoding="utf-8") as f:
+            state = json.load(f)
+        self.alpha = state["alpha"]
+        self._t = state["t"]
+        self._A = np.array(state["A"])
+        self._b = np.array(state["b"])
+        self._recompute()
