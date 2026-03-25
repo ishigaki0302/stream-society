@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StreamSociety{% endblock %} | AI Livestream Simulation</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <span class="brand-icon">&#9654;</span>
+            <span class="brand-name">StreamSociety</span>
+            <span class="brand-tag">AI Sim</span>
+        </div>
+        <div class="navbar-links">
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/compare" class="nav-link">Compare</a>
+            <a href="https://github.com/ishigaki0302/ResearchIntelligence" class="nav-link" target="_blank">Docs</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>StreamSociety v0.1.0</span>
+            <span class="footer-sep">&#8226;</span>
+            <span>AI Livestream Simulation Platform</span>
+            <span class="footer-sep">&#8226;</span>
+            <span>Research Use Only</span>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
