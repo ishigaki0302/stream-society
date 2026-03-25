@@ -13,3 +13,4 @@ streamer_config:
   response_style: friendly
 persona_data: data/personas/sample_personas.jsonl
 output_dir: outputs/runs
+streamer_persona: null  # set to AItuber persona ID like "aituber_000" to use AItuber character

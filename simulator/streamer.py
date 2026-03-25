@@ -38,6 +38,8 @@ class StreamerAgent:
 
         self._name = config.get("name", "Aoi")
         self._response_style = config.get("response_style", "friendly")
+        # system_prompt from AItuberPersona; used as context by the LLM adapter if available
+        self._system_prompt: Optional[str] = config.get("system_prompt", None)
         topics = config.get("topics", _DEFAULT_TOPICS)
         self._topic_cycle = itertools.cycle(topics)
         self._current_topic: str = config.get("current_topic", topics[0] if topics else "gaming")
@@ -86,6 +88,9 @@ class StreamerAgent:
             "streamer_name": self._name,
             "turn": turn,
         }
+        # Include system_prompt as persona context if set (e.g. from AItuberPersona)
+        if self._system_prompt:
+            llm_context["system_prompt"] = self._system_prompt
         prompt = (
             f"視聴者からのコメント: 「{selected.text}」\n"
             f"トピック: {selected.topic}\n"
