@@ -99,6 +99,43 @@ _TOPIC_SENTIMENTS: dict[str, float] = {
     "unknown": 0.3,
 }
 
+# 日本語インタレストラベル → topic ラベルのマッピング
+_INTEREST_TO_TOPIC: dict[str, str] = {
+    "ゲーム": "gaming",
+    "ゲーミング": "gaming",
+    "gaming": "gaming",
+    "音楽": "music",
+    "music": "music",
+    "アニメ": "anime",
+    "アニメーション": "anime",
+    "anime": "anime",
+    "テクノロジー": "technology",
+    "技術": "technology",
+    "プログラミング": "technology",
+    "IT": "technology",
+    "technology": "technology",
+    "ライフスタイル": "lifestyle",
+    "lifestyle": "lifestyle",
+    "料理": "cooking",
+    "グルメ": "cooking",
+    "cooking": "cooking",
+    "旅行": "travel",
+    "travel": "travel",
+    "スポーツ": "sports",
+    "sports": "sports",
+    "ファッション": "fashion",
+    "fashion": "fashion",
+    "映画": "anime",        # anime/entertainment 扱い
+    "読書": "lifestyle",
+    "マンガ": "anime",
+    "コスプレ": "anime",
+    "DIY": "lifestyle",
+    "フィットネス": "sports",
+    "ヨガ": "sports",
+    "写真": "lifestyle",
+    "アート": "lifestyle",
+}
+
 
 class ViewerAgent:
     """Simulates a single viewer in the livestream."""
@@ -159,8 +196,10 @@ class ViewerAgent:
         self._comment_count += 1
         is_question = rng.random() < 0.25
 
-        text = self._generate_text(rng, streamer_topic, is_question)
-        sentiment = self._compute_sentiment(rng, streamer_topic)
+        # トピック決定: 60% はストリーマーのトピック、40% は視聴者自身の興味から
+        topic = self._determine_topic(rng, streamer_topic)
+        text = self._generate_text(rng, topic, is_question)
+        sentiment = self._compute_sentiment(rng, topic)
         toxicity = self._compute_toxicity(rng)
         novelty = self._compute_novelty(rng, turn)
 
@@ -173,12 +212,27 @@ class ViewerAgent:
             persona_group=self.persona.persona_group,
             text=text,
             timestamp_turn=turn,
-            topic=streamer_topic,
+            topic=topic,
             sentiment=sentiment,
             question_flag=is_question,
             toxicity_score=toxicity,
             novelty_score=novelty,
         )
+
+    def _determine_topic(self, rng: random.Random, streamer_topic: str) -> str:
+        """視聴者のトピックを決定する。
+        60%: ストリーマーのトピックに乗る
+        40%: 自分のインタレストからサンプリング
+        """
+        if rng.random() < 0.6 or not self.persona.interests:
+            return streamer_topic
+
+        # 自分のインタレストから英語 topic ラベルに変換してサンプリング
+        topics = [
+            _INTEREST_TO_TOPIC.get(interest, "lifestyle")
+            for interest in self.persona.interests
+        ]
+        return rng.choice(topics)
 
     def _generate_text(self, rng: random.Random, topic: str, is_question: bool) -> str:
         """Generate template-based comment text."""
